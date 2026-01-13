@@ -1,0 +1,84 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# =======================
+# Load Dataset
+# =======================
+df = pd.read_csv('student_learning_trajectory.csv')
+
+# =======================
+# Feature & Target
+# =======================
+X = df[['student_id', 'week', 'study_hours', 'sleep_hours',
+        'stress_level', 'attendance_rate', 'screen_time_hours',
+        'caffeine_intake', 'learning_efficiency', 'fatigue_index',
+        'quiz_score', 'assignment_score']]
+
+y = df['performance_index']
+
+# =======================
+# Train-Test Split
+# =======================
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# =======================
+# Scaling
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+#K-Nearest Neighbors 
+k = 5
+model = KNeighborsClassifier(n_neighbors=k)
+model.fit(X_train_scaled, y_train)
+
+y_pred = model.predict(X_test_scaled)
+# =======================
+# Evaluation
+# =======================
+accuracy = accuracy_score(y_test, y_pred)
+print("Akurasi:", accuracy)
+print("\nLaporan Klasifikasi: ")
+print(classification_report(y_test, y_pred))
+print("Matriks Confusi:") 
+print(confusion_matrix(y_test, y_pred))
+
+# =======================
+# User Input
+# =======================
+print("\n" + "=" * 50)
+print("Prediksi Performa Mahasiswa")
+print("=" * 50)
+
+try:
+    new_student = pd.DataFrame([[
+        int(input("NIM: ")),
+        int(input("Minggu ke-: ")),
+        float(input("Jam Belajar per Minggu: ")),
+        float(input("Jam Tidur per Hari: ")),
+        int(input("Level Stress (1–5): ")),
+        float(input("Kehadiran (%): ")),
+        float(input("Waktu Bermain Gadget (jam/hari): ")),
+        float(input("Kafein per Hari (mg): ")),
+        float(input("Efektivitas Belajar (0–1): ")),
+        float(input("Indeks Kejenuhan (0–1): ")),
+        float(input("Nilai Quiz (0–100): ")),
+        float(input("Nilai Tugas (0–100): "))
+    ]], columns=X.columns)
+
+    new_student_scaled = scaler.transform(new_student)
+
+    prediction = model.predict(new_student_scaled)
+    proba = model.predict_proba(new_student_scaled)
+
+    print(f"\nPrediksi Perkembangan Mahasiswa Adalah: {prediction[0]}")
+
+except Exception as e:
+    print("\nERROR:", e)
